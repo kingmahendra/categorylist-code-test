@@ -1,25 +1,56 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import axios from 'axios';
+import CategoryList from './components/CategoryList';
+import CategoryItem from './components/CategoryItem';
 
 class App extends Component {
+  state = {
+    categories: [],
+    selectedCategory: '',
+    itemsInCategory:[]
+  }
+
+  componentDidMount() {
+    // Todo move to config file  
+    const url = 'https://stream-restaurant-menu-svc.herokuapp.com/category';
+    axios.get(url).then(res => {
+
+      this.setState({
+        categories: res.data
+      })
+    }).catch(err => {
+      console.log('Error while fetching categories', err)
+    })
+  }
+
+  onCategorySelect = (selectedCategory) => {
+    
+    const url = `https://stream-restaurant-menu-svc.herokuapp.com/item?category=${selectedCategory}`;
+    axios.get(url).then(res => {
+      console.log('Selected', res.data)
+      this.setState({
+        selectedCategory:selectedCategory,
+        itemsInCategory: res.data
+      })
+    }).catch(err => {
+      console.log('Error while fetching categories item', err)
+    })
+   
+    
+  } 
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+        <CategoryList className="categories" categories={this.state.categories}
+          onCategorySelect={this.onCategorySelect}
+        />
+        {
+          this.state.selectedCategory &&
+           <CategoryItem className="category-item" selectedCategory={this.state.selectedCategory}
+          categoryItems={this.state.itemsInCategory}/>
+        }
+        
       </div>
     );
   }
